@@ -1,0 +1,398 @@
+/* ─── Reset & Base ─── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: 'JetBrains Mono', monospace;
+  background: #0d1117;
+  color: #c9d1d9;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* ─── Dashboard Shell ─── */
+.dashboard {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100dvh;
+  min-height: 0;
+}
+
+/* ─── Header ─── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: #161b22;
+  border-bottom: 1px solid rgba(240,246,252,0.06);
+  z-index: 10;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.header-left h1 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #e6edf3;
+  letter-spacing: -0.02em;
+}
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.header-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #8b949e;
+}
+.live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #3fb950;
+  animation: pulse 2s ease infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ─── Symbol Tabs ─── */
+.symbol-tabs {
+  display: flex;
+  gap: 2px;
+  background: rgba(240,246,252,0.04);
+  border-radius: 8px;
+  padding: 2px;
+}
+.tab {
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #8b949e;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16,1,0.3,1);
+}
+.tab:hover { color: #c9d1d9; background: rgba(240,246,252,0.06); }
+.tab.active { color: #e6edf3; background: #21262d; }
+
+/* ─── Main ─── */
+.main {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 16px 20px 24px;
+}
+
+/* ─── Panels ─── */
+.panels {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.panel {
+  background: #161b22;
+  border: 1px solid rgba(240,246,252,0.06);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(240,246,252,0.04);
+}
+.panel-header h2 {
+  font-size: 12px;
+  font-weight: 600;
+  color: #e6edf3;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.tf-badge {
+  font-size: 10px;
+  font-weight: 500;
+  background: rgba(88,166,255,0.12);
+  color: #58a6ff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+}
+.badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+.badge-bullish { background: rgba(63,185,80,0.15); color: #3fb950; }
+.badge-bearish { background: rgba(248,81,73,0.15); color: #f85149; }
+.badge-neutral { background: rgba(139,148,158,0.15); color: #8b949e; }
+
+/* ─── MTF Table ─── */
+.table-wrap {
+  overflow-x: auto;
+  overscroll-behavior: contain;
+}
+.mtf-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.mtf-table thead th {
+  text-align: left;
+  padding: 8px 12px;
+  font-weight: 500;
+  color: #8b949e;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  position: sticky;
+  top: 0;
+  background: #161b22;
+  border-bottom: 1px solid rgba(240,246,252,0.06);
+}
+.mtf-table tbody td {
+  padding: 7px 12px;
+  border-bottom: 1px solid rgba(240,246,252,0.03);
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.mtf-table tbody tr:hover {
+  background: rgba(240,246,252,0.02);
+}
+
+.tf-label {
+  font-weight: 600;
+  color: #e6edf3;
+}
+.swing-bar-cell {
+  font-size: 12px;
+  letter-spacing: 0;
+}
+.structure-labels {
+  display: flex;
+  gap: 3px;
+  flex-wrap: nowrap;
+}
+.struct-tag {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+.struct-hh { background: rgba(63,185,80,0.15); color: #3fb950; }
+.struct-hl { background: rgba(63,185,80,0.10); color: #56d364; }
+.struct-lh { background: rgba(248,81,73,0.10); color: #f97583; }
+.struct-ll { background: rgba(248,81,73,0.15); color: #f85149; }
+
+.ob-cell, .fvg-cell {
+  font-size: 10px;
+}
+.bull-tag { color: #3fb950; }
+.bear-tag { color: #f85149; }
+.dist-tag { color: #8b949e; font-size: 9px; }
+
+.ema-above { color: #3fb950; }
+.ema-below { color: #f85149; }
+.ema-at { color: #8b949e; }
+
+/* ─── Bottom Row ─── */
+.bottom-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+
+/* ─── Current TF Panel ─── */
+.current-grid {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.metric-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.metric-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: #8b949e;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.metric-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: #e6edf3;
+}
+.metric-sub {
+  font-size: 10px;
+  color: #484f58;
+}
+
+/* Volume Bar */
+.vol-bar-wrap {
+  height: 4px;
+  background: rgba(240,246,252,0.04);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 2px;
+}
+.vol-bar {
+  height: 100%;
+  border-radius: 2px;
+  width: 50%;
+  transition: width 0.6s cubic-bezier(0.16,1,0.3,1), background 0.3s;
+}
+
+/* Swing Text */
+.swing-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: #e6edf3;
+  letter-spacing: 0.5px;
+}
+
+/* Volume States */
+.state-extreme { color: #f0883e; }
+.state-high { color: #d2a8ff; }
+.state-normal { color: #8b949e; }
+.state-low { color: #484f58; }
+.state-very-low { color: #30363d; }
+
+/* ─── Context Panel ─── */
+.context-grid {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Bias Bar */
+.bias-score {
+  font-size: 24px;
+  font-weight: 700;
+  color: #e6edf3;
+  line-height: 1;
+}
+.bias-bar-wrap {
+  position: relative;
+  height: 6px;
+  background: rgba(240,246,252,0.04);
+  border-radius: 3px;
+  overflow: visible;
+  margin-top: 4px;
+}
+.bias-bar {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border-radius: 3px;
+  transition: all 0.6s cubic-bezier(0.16,1,0.3,1);
+}
+.bias-center {
+  position: absolute;
+  left: 50%;
+  top: -1px;
+  width: 1px;
+  height: 8px;
+  background: #484f58;
+}
+
+/* ─── HTF Levels Panel ─── */
+.htf-grid {
+  padding: 8px 0;
+}
+.htf-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(240,246,252,0.03);
+}
+.htf-row:last-child { border-bottom: none; }
+.htf-period {
+  font-size: 11px;
+  font-weight: 600;
+  color: #8b949e;
+  min-width: 80px;
+}
+.htf-values {
+  display: flex;
+  gap: 16px;
+  font-size: 11px;
+}
+.htf-high { color: #3fb950; }
+.htf-low { color: #f85149; }
+.htf-dist {
+  color: #484f58;
+  font-size: 9px;
+}
+
+/* ─── Skeleton ─── */
+.skeleton-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.skel-row {
+  display: flex;
+  gap: 16px;
+}
+.skel-card {
+  flex: 1;
+  height: 180px;
+  background: #161b22;
+  border-radius: 10px;
+  border: 1px solid rgba(240,246,252,0.06);
+  position: relative;
+  overflow: hidden;
+}
+.skel-card.wide { flex: 3; height: 240px; }
+.skel-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 30%, rgba(240,246,252,0.03) 50%, transparent 70%);
+  animation: shimmer 1.5s infinite;
+}
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 900px) {
+  .bottom-row {
+    grid-template-columns: 1fr;
+  }
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .header-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+@media (max-width: 600px) {
+  .main { padding: 12px; }
+  .mtf-table { font-size: 10px; }
+  .mtf-table thead th, .mtf-table tbody td { padding: 6px 8px; }
+}
