@@ -2283,18 +2283,51 @@ async function fetchLiveThesis() {
     const raw = await res.json();
     if (raw.error) return;
 
-    // Map bot schema → dashboard thesis schema
-    // Bot emits: { BTC: { asset, macro, micro, factor_score, gate, updated_at }, ... }
+    // Map actual bot schema → dashboard thesis schema
+    // Bot emits: { BTC: { asset, macro:{trend,structure,ema200_h1,regime_confidence},
+    //   microstructure:{volume_trend,delta_bias,momentum,in_prime_window},
+    //   factor_score:{score,...}, trade_gate:{confidence,...}, updated_at }, ... }
     const mapped = {};
     for (const [key, val] of Object.entries(raw)) {
       if (key === "schema_version") continue;
-      if (typeof val !== "object" || !val.gate) continue;
+      if (typeof val !== "object" || !val.trade_gate) continue;
+      const macro = val.macro || {};
+      const micro = val.microstructure || {};
+      const tg = val.trade_gate || {};
+      const fs = val.factor_score || {};
+
+      // Normalise gate label
+      const gate = tg.confidence || "BLOCKED";
+
+      // factor_score is an object {score: 0.63} — convert to 0-100
+      const rawScore = typeof fs === "number" ? fs : (fs.score ?? 0);
+      const factorScore = Math.round(rawScore <= 1 ? rawScore * 100 : rawScore);
+
+      // btc_alignment: derive from trade_gate notes for ETH/SOL
+      let btcAlignment = null;
+      if (key !== "BTC") {
+        if (gate === "HIGH") btcAlignment = "aligned";
+        else if (gate === "CONTEXT_ONLY" || gate === "BLOCKED") btcAlignment = "blocked";
+        else btcAlignment = "divergent";
+      }
+
       mapped[key] = {
-        macro: val.macro || {},
-        micro: val.micro || {},
-        factor_score: val.factor_score ?? val.factor?.score ?? 0,
-        gate: val.gate,
-        btc_alignment: val.btc_alignment ?? null,
+        macro: {
+          regime: macro.trend || "unknown",
+          regime_confidence: macro.regime_confidence ?? 0,
+          ema200_position: (macro.ema200_h1 || "").replace("price_", "") || "unknown",
+          h4_structure: macro.structure || "unknown",
+          h1_trend: macro.h1_trend || macro.trend || "unknown"
+        },
+        micro: {
+          volume_trend: micro.volume_trend || "unknown",
+          delta_bias: micro.delta_bias || "neutral",
+          momentum: micro.momentum || "unknown",
+          prime_window: micro.in_prime_window ?? false
+        },
+        factor_score: factorScore,
+        gate: gate,
+        btc_alignment: btcAlignment,
         updated_at: val.updated_at
       };
     }
