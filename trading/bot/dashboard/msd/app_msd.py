@@ -1,12 +1,27 @@
 from flask import Flask, render_template, jsonify, send_from_directory
 import os
+import json
+from pathlib import Path
 
 app = Flask(__name__, static_folder="static", static_url_path="/static")
 SYMBOLS = ["BTCUSDT", "ETHUSDT", "SOLUSDT"]
 
+THESIS_PATH = Path("/home/ubuntu/clawd-biz/trading/bot/thesis_state.json")
+
 @app.route("/")
 def index():
     return render_template("msd.html")
+
+@app.route("/api/thesis")
+def api_thesis():
+    if not THESIS_PATH.exists():
+        return jsonify({"error": "thesis_state.json not found"}), 404
+    try:
+        with open(THESIS_PATH) as f:
+            data = json.load(f)
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # Keep old API endpoints available (unused by new frontend but useful for debugging)
 @app.route("/api/msd/<symbol>")

@@ -11,10 +11,13 @@
 <body>
 <div class="dashboard">
 
+  <!-- Notification Banner -->
+  <div class="notification-banner" id="notification-banner"></div>
+
   <!-- Header -->
   <header class="header">
     <div class="header-left">
-      <svg class="logo" width="28" height="28" viewBox="0 0 28 28" fill="none">
+      <svg class="logo" width="24" height="24" viewBox="0 0 28 28" fill="none">
         <rect x="2" y="18" width="5" height="8" rx="1" fill="#3fb950"/>
         <rect x="9" y="12" width="5" height="14" rx="1" fill="#58a6ff"/>
         <rect x="16" y="6" width="5" height="20" rx="1" fill="#d2a8ff"/>
@@ -22,12 +25,12 @@
       </svg>
       <h1>Market Structure</h1>
     </div>
+    <div class="header-center">
+      <input type="text" id="add-ticker-input" placeholder="Add ticker..." spellcheck="false" autocomplete="off">
+      <button class="add-btn" id="add-ticker-btn">Add</button>
+    </div>
     <div class="header-right">
-      <div class="symbol-tabs" id="symbol-tabs">
-        <button class="tab active" data-symbol="BTCUSDT">BTC</button>
-        <button class="tab" data-symbol="ETHUSDT">ETH</button>
-        <button class="tab" data-symbol="SOLUSDT">SOL</button>
-      </div>
+      <span class="active-symbol-display" id="active-symbol-display"></span>
       <div class="header-meta">
         <span class="live-dot"></span>
         <span id="last-update">Loading...</span>
@@ -35,141 +38,358 @@
     </div>
   </header>
 
+  <!-- Sidebar / Watchlist -->
+  <aside class="sidebar">
+    <div class="sidebar-header">Watchlist</div>
+    <ul class="watchlist" id="watchlist"></ul>
+  </aside>
+
   <!-- Main Content -->
   <main class="main" id="main-content">
 
     <!-- Skeleton shown while loading -->
     <div class="skeleton-wrap" id="skeleton">
-      <div class="skel-row">
-        <div class="skel-card wide"></div>
-      </div>
-      <div class="skel-row">
-        <div class="skel-card"></div>
-        <div class="skel-card"></div>
-        <div class="skel-card"></div>
-      </div>
+      <div class="skel-row"><div class="skel-card wide"></div></div>
+      <div class="skel-row"><div class="skel-card wide"></div></div>
+      <div class="skel-row"><div class="skel-card"></div><div class="skel-card"></div><div class="skel-card"></div></div>
     </div>
 
     <!-- Actual content (hidden until data loads) -->
-    <div class="panels" id="panels" style="display:none;">
+    <div id="panels" style="display:none;">
 
-      <!-- PANEL 1: MTF TABLE -->
-      <section class="panel panel-mtf">
-        <div class="panel-header">
-          <h2>MTF Analysis</h2>
-          <span class="badge" id="structure-badge">—</span>
+      <!-- TradingView Chart -->
+      <section class="panel chart-section" data-panel="chart">
+        <div class="panel-header panel-collapse-header" data-target="chart">
+          <h2>Chart <span class="collapse-arrow">▼</span></h2>
+          <div class="chart-controls" id="chart-controls">
+            <button class="chart-tf-btn" data-interval="15">15m</button>
+            <button class="chart-tf-btn active" data-interval="60">1H</button>
+            <button class="chart-tf-btn" data-interval="240">4H</button>
+            <button class="chart-tf-btn" data-interval="D">1D</button>
+          </div>
         </div>
-        <div class="table-wrap">
-          <table class="mtf-table" id="mtf-table">
-            <thead>
-              <tr>
-                <th>TF</th>
-                <th>Swing H/L</th>
-                <th>Structure</th>
-                <th>Order Block</th>
-                <th>FVG</th>
-                <th>EMA 21</th>
-              </tr>
-            </thead>
-            <tbody id="mtf-body"></tbody>
-          </table>
+        <div class="panel-body">
+          <div class="chart-container" id="chart-container">
+            <div class="chart-placeholder">Select a ticker to load chart</div>
+          </div>
         </div>
       </section>
 
-      <!-- Bottom Row: 3 panels -->
+      <!-- MTF Analysis Table -->
+      <section class="panel panel-mtf" data-panel="mtf">
+        <div class="panel-header panel-collapse-header" data-target="mtf">
+          <h2>MTF Analysis <span class="collapse-arrow">▼</span></h2>
+          <span class="badge" id="structure-badge">—</span>
+        </div>
+        <div class="panel-body">
+          <div class="table-wrap">
+            <table class="mtf-table" id="mtf-table">
+              <thead>
+                <tr>
+                  <th>TF</th>
+                  <th>Swing H/L</th>
+                  <th>Structure</th>
+                  <th>Order Block</th>
+                  <th>FVG</th>
+                  <th>EMA 21</th>
+                </tr>
+              </thead>
+              <tbody id="mtf-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Bottom Row: Current TF, Market Context, HTF Levels -->
       <div class="bottom-row">
 
-        <!-- PANEL 2: CURRENT TF (15m) -->
-        <section class="panel panel-current">
-          <div class="panel-header">
-            <h2>Current TF <span class="tf-badge">15m</span></h2>
+        <!-- Current TF (15m) -->
+        <section class="panel panel-current" data-panel="current-tf">
+          <div class="panel-header panel-collapse-header" data-target="current-tf">
+            <h2>Current TF <span class="tf-badge">15m</span> <span class="collapse-arrow">▼</span></h2>
           </div>
-          <div class="current-grid" id="current-tf-content">
-            <!-- Volume -->
-            <div class="metric-card">
-              <div class="metric-label">Volume</div>
-              <div class="metric-value" id="vol-state">—</div>
-              <div class="vol-bar-wrap">
-                <div class="vol-bar" id="vol-bar"></div>
+          <div class="panel-body">
+            <div class="current-grid" id="current-tf-content">
+              <div class="metric-card">
+                <div class="metric-label">Volume</div>
+                <div class="metric-value" id="vol-state">—</div>
+                <div class="vol-bar-wrap"><div class="vol-bar" id="vol-bar"></div></div>
+                <div class="metric-sub" id="vol-ratio">—</div>
               </div>
-              <div class="metric-sub" id="vol-ratio">—</div>
-            </div>
-            <!-- Swing Position -->
-            <div class="metric-card">
-              <div class="metric-label">Swing Position</div>
-              <div class="swing-text" id="swing-pos">L ─────────── H</div>
-              <div class="metric-sub" id="swing-detail">—</div>
-            </div>
-            <!-- Volatility -->
-            <div class="metric-card">
-              <div class="metric-label">Volatility</div>
-              <div class="metric-value" id="vol-state-atr">—</div>
-              <div class="metric-sub" id="vol-atr-detail">—</div>
+              <div class="metric-card">
+                <div class="metric-label">Swing Position</div>
+                <div class="swing-text" id="swing-pos">L ─────────── H</div>
+                <div class="metric-sub" id="swing-detail">—</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-label">Volatility</div>
+                <div class="metric-value" id="vol-state-atr">—</div>
+                <div class="metric-sub" id="vol-atr-detail">—</div>
+              </div>
             </div>
           </div>
         </section>
 
-        <!-- PANEL 3: MARKET CONTEXT -->
-        <section class="panel panel-context">
-          <div class="panel-header">
-            <h2>Market Context</h2>
+        <!-- Market Context -->
+        <section class="panel panel-context" data-panel="context">
+          <div class="panel-header panel-collapse-header" data-target="context">
+            <h2>Market Context <span class="collapse-arrow">▼</span></h2>
           </div>
-          <div class="context-grid" id="context-content">
-            <div class="metric-card">
-              <div class="metric-label">Session</div>
-              <div class="metric-value" id="session-name">—</div>
-              <div class="metric-sub" id="session-time">—</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-label">ICT Killzone</div>
-              <div class="metric-value" id="killzone-name">—</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-label">Trend Bias</div>
-              <div class="bias-score" id="bias-score">0</div>
-              <div class="bias-bar-wrap">
-                <div class="bias-bar" id="bias-bar"></div>
-                <div class="bias-center"></div>
+          <div class="panel-body">
+            <div class="context-grid" id="context-content">
+              <div class="metric-card">
+                <div class="metric-label">Session</div>
+                <div class="metric-value" id="session-name">—</div>
+                <div class="metric-sub" id="session-time">—</div>
               </div>
-              <div class="metric-sub" id="bias-label">Neutral</div>
+              <div class="metric-card">
+                <div class="metric-label">ICT Killzone</div>
+                <div class="metric-value" id="killzone-name">—</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-label">Trend Bias</div>
+                <div class="bias-score" id="bias-score">0</div>
+                <div class="bias-bar-wrap">
+                  <div class="bias-bar" id="bias-bar"></div>
+                  <div class="bias-center"></div>
+                </div>
+                <div class="metric-sub" id="bias-label">Neutral</div>
+              </div>
             </div>
           </div>
         </section>
 
-        <!-- PANEL 4: HTF LEVELS -->
-        <section class="panel panel-htf">
-          <div class="panel-header">
-            <h2>HTF Levels</h2>
+        <!-- HTF Levels -->
+        <section class="panel panel-htf" data-panel="htf">
+          <div class="panel-header panel-collapse-header" data-target="htf">
+            <h2>HTF Levels <span class="collapse-arrow">▼</span></h2>
             <span class="metric-sub" id="htf-price">—</span>
           </div>
-          <div class="htf-grid" id="htf-content">
-            <div class="htf-row" id="htf-day">
-              <div class="htf-period">Prev Day</div>
-              <div class="htf-values">
-                <span class="htf-high">H: —</span>
-                <span class="htf-low">L: —</span>
+          <div class="panel-body">
+            <div class="htf-grid" id="htf-content">
+              <div class="htf-row" id="htf-day">
+                <div class="htf-period">Prev Day</div>
+                <div class="htf-values">
+                  <span class="htf-high">H: —</span>
+                  <span class="htf-low">L: —</span>
+                </div>
               </div>
-            </div>
-            <div class="htf-row" id="htf-week">
-              <div class="htf-period">Prev Week</div>
-              <div class="htf-values">
-                <span class="htf-high">H: —</span>
-                <span class="htf-low">L: —</span>
+              <div class="htf-row" id="htf-week">
+                <div class="htf-period">Prev Week</div>
+                <div class="htf-values">
+                  <span class="htf-high">H: —</span>
+                  <span class="htf-low">L: —</span>
+                </div>
               </div>
-            </div>
-            <div class="htf-row" id="htf-month">
-              <div class="htf-period">Prev Month</div>
-              <div class="htf-values">
-                <span class="htf-high">H: —</span>
-                <span class="htf-low">L: —</span>
+              <div class="htf-row" id="htf-month">
+                <div class="htf-period">Prev Month</div>
+                <div class="htf-values">
+                  <span class="htf-high">H: —</span>
+                  <span class="htf-low">L: —</span>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
       </div><!-- /bottom-row -->
+
+      <!-- Killzone Heatmap -->
+      <section class="panel killzone-panel" data-panel="killzone">
+        <div class="panel-header panel-collapse-header" data-target="killzone">
+          <h2>ICT Killzones <span class="collapse-arrow">▼</span></h2>
+          <span class="metric-sub" id="kz-session-label">—</span>
+        </div>
+        <div class="panel-body">
+          <div class="kz-heatmap" id="kz-heatmap"></div>
+        </div>
+      </section>
+
+      <!-- OB + FVG Tracker -->
+      <section class="panel obfvg-panel" data-panel="obfvg">
+        <div class="panel-header panel-collapse-header" data-target="obfvg">
+          <h2>OB + FVG Tracker <span class="collapse-arrow">▼</span></h2>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="feed-btn obfvg-filter-btn active" data-filter="all" id="obfvg-filter-all">All</button>
+            <button class="feed-btn obfvg-filter-btn" data-filter="ob" id="obfvg-filter-ob">OB</button>
+            <button class="feed-btn obfvg-filter-btn" data-filter="fvg" id="obfvg-filter-fvg">FVG</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="table-wrap obfvg-table-wrap">
+            <table class="obfvg-table" id="obfvg-table">
+              <thead>
+                <tr>
+                  <th>Ticker</th>
+                  <th>TF</th>
+                  <th>Type</th>
+                  <th>Side</th>
+                  <th>Zone</th>
+                  <th>Dist %</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="obfvg-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Live Thesis Panel -->
+      <section class="panel thesis-panel" data-panel="thesis">
+        <div class="panel-header panel-collapse-header" data-target="thesis">
+          <h2>Live Thesis <span class="collapse-arrow">▼</span></h2>
+          <div style="display:flex;gap:6px;align-items:center">
+            <span class="metric-sub" id="thesis-source-label">Demo data</span>
+            <button class="feed-btn" id="thesis-load-btn" title="Paste thesis JSON">Load</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="thesis-cards" id="thesis-cards"></div>
+        </div>
+      </section>
+
+      <!-- Signal Alerts Panel -->
+      <section class="panel signals-panel" data-panel="signals">
+        <div class="panel-header panel-collapse-header" data-target="signals">
+          <h2>Signal Alerts <span class="collapse-arrow">▼</span></h2>
+          <span class="metric-sub" id="signal-count">0 signals</span>
+        </div>
+        <div class="panel-body">
+          <div class="table-wrap">
+            <table class="signals-table" id="signals-table">
+              <thead>
+                <tr>
+                  <th data-sort="time">Time <span class="sort-arrow">▼</span></th>
+                  <th data-sort="ticker">Ticker</th>
+                  <th data-sort="type">Type</th>
+                  <th data-sort="direction">Dir</th>
+                  <th data-sort="tf">TF</th>
+                  <th data-sort="price">Price</th>
+                </tr>
+              </thead>
+              <tbody id="signals-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Bottom Row 2: Momentum Scanner + Correlation Heatmap -->
+      <div class="bottom-row-2">
+
+        <!-- Momentum Scanner -->
+        <section class="panel momentum-panel" data-panel="momentum">
+          <div class="panel-header panel-collapse-header" data-target="momentum">
+            <h2>Momentum Scanner <span class="collapse-arrow">▼</span></h2>
+          </div>
+          <div class="panel-body">
+            <div class="table-wrap">
+              <table class="momentum-table" id="momentum-table">
+                <thead>
+                  <tr>
+                    <th rowspan="2">Ticker</th>
+                    <th colspan="2" class="th-group">15m</th>
+                    <th colspan="2" class="th-group">1h</th>
+                    <th colspan="2" class="th-group">4h</th>
+                    <th colspan="2" class="th-group">1d</th>
+                  </tr>
+                  <tr>
+                    <th>RSI</th><th>MACD</th>
+                    <th>RSI</th><th>MACD</th>
+                    <th>RSI</th><th>MACD</th>
+                    <th>RSI</th><th>MACD</th>
+                  </tr>
+                </thead>
+                <tbody id="momentum-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- Correlation Heatmap -->
+        <section class="panel correlation-panel" data-panel="correlation">
+          <div class="panel-header panel-collapse-header" data-target="correlation">
+            <h2>Correlation Map <span class="collapse-arrow">▼</span></h2>
+          </div>
+          <div class="panel-body">
+            <div class="correlation-grid" id="correlation-content">
+              <div class="metric-sub">Need 2+ tickers</div>
+            </div>
+          </div>
+        </section>
+
+      </div><!-- /bottom-row-2 -->
+
+      <!-- Bot Feed Panel -->
+      <section class="panel bot-feed-panel" data-panel="bot-feed">
+        <div class="panel-header panel-collapse-header" data-target="bot-feed">
+          <h2>Bot Feed <span class="collapse-arrow">▼</span></h2>
+          <div style="display:flex;gap:6px">
+            <button class="feed-btn" id="feed-copy-btn" title="Copy JSON">Copy</button>
+            <button class="feed-btn" id="feed-download-btn" title="Download JSON">Download</button>
+          </div>
+        </div>
+        <div class="panel-body" id="bot-feed-body">
+          <pre class="feed-json" id="feed-json"></pre>
+        </div>
+      </section>
+
     </div><!-- /panels -->
   </main>
+
+  <!-- Price Alerts Bar -->
+  <div class="alerts-bar">
+    <span class="alerts-bar-label">Alerts</span>
+    <div class="alert-chips" id="alert-chips">
+      <span class="metric-sub">No active alerts</span>
+    </div>
+    <button class="alert-add-btn" id="alert-add-btn" title="Add price alert">+</button>
+    <button class="alert-clear-btn" id="alert-clear-btn" title="Clear all saved state">Clear</button>
+  </div>
+
+</div>
+
+<!-- Alert Form Overlay -->
+<div class="alert-form-overlay" id="alert-form-overlay">
+  <div class="alert-form">
+    <h3>New Price Alert</h3>
+    <div>
+      <label>Ticker</label>
+      <select id="alert-ticker-select"></select>
+    </div>
+    <div class="alert-form-row">
+      <div>
+        <label>Price</label>
+        <input type="number" id="alert-price-input" step="any" placeholder="0.00">
+      </div>
+      <div>
+        <label>Direction</label>
+        <select id="alert-dir-select">
+          <option value="above">Above</option>
+          <option value="below">Below</option>
+        </select>
+      </div>
+    </div>
+    <div class="alert-form-actions">
+      <button class="btn-cancel" id="alert-cancel-btn">Cancel</button>
+      <button class="btn-save" id="alert-save-btn">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- Thesis Load Overlay -->
+<div class="alert-form-overlay" id="thesis-form-overlay">
+  <div class="alert-form" style="width:420px">
+    <h3>Load Thesis State</h3>
+    <div>
+      <label>Paste thesis_state.json or a URL</label>
+      <textarea id="thesis-json-input" rows="10" style="font-family:'JetBrains Mono',monospace;font-size:10px;padding:8px 10px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;width:100%;outline:none;resize:vertical;transition:border-color 0.18s" placeholder='{"BTC":{"macro":{...},"micro":{...},"factor_score":72,"gate":"HIGH"}}'></textarea>
+    </div>
+    <div class="alert-form-actions">
+      <button class="btn-cancel" id="thesis-cancel-btn">Cancel</button>
+      <button class="btn-save" id="thesis-save-btn">Apply</button>
+    </div>
+  </div>
 </div>
 
 <script src="/static/app.js"></script>
