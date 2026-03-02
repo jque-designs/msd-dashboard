@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market Structure Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0d1117;
+            --card: #161b22;
+            --border: #30363d;
+            --text: #e6edf3;
+            --muted: #8b949e;
+            --bull: #089981;
+            --bear: #f23645;
+            --neutral: #b8b8b8;
+            --yellow: #d29922;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            line-height: 1.4;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 16px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 14px;
+        }
+
+        .header-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 6px 10px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+        }
+
+        .tab.active {
+            border-color: var(--bull);
+            color: var(--bull);
+        }
+
+        .price-wrap {
+            text-align: right;
+            min-width: 240px;
+        }
+
+        #curr-price {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        #countdown {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            color: var(--muted);
+            margin-bottom: 8px;
+            letter-spacing: 0.04em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th, td {
+            border: 1px solid var(--border);
+            padding: 8px 10px;
+            text-align: left;
+            white-space: pre;
+        }
+
+        th {
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        .panel-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .mini-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .mini-item {
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px;
+            min-height: 64px;
+        }
+
+        .mini-label {
+            color: var(--muted);
+            font-size: 12px;
+            margin-bottom: 6px;
+        }
+
+        .data-cell {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            white-space: pre;
+        }
+
+        .bull { color: var(--bull); }
+        .bear { color: var(--bear); }
+        .neutral { color: var(--neutral); }
+        .yellow { color: var(--yellow); }
+
+        .htf-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px 20px;
+        }
+
+        .htf-row {
+            display: flex;
+            gap: 8px;
+            align-items: baseline;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px;
+        }
+
+        .htf-key {
+            color: var(--muted);
+            min-width: 36px;
+        }
+
+        @media (max-width: 900px) {
+            .panel-grid {
+                grid-template-columns: 1fr;
+            }
+            .mini-grid {
+                grid-template-columns: 1fr;
+            }
+            .htf-grid {
+                grid-template-columns: 1fr;
+            }
+            .price-wrap {
+                text-align: left;
+                min-width: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <div class="title">MARKET STRUCTURE DASHBOARD</div>
+        <div class="header-row">
+            <div class="tabs">
+                {% for s in symbols %}
+                <button class="tab {% if s == 'BTCUSDT' %}active{% endif %}" data-symbol="{{ s }}" onclick="switchSymbol('{{ s }}')">
+                    {{ s.replace('USDT', '') }}
+                </button>
+                {% endfor %}
+            </div>
+            <div class="price-wrap">
+                <div id="curr-price">$0.00</div>
+                <div id="countdown">Refreshing in 15s</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="section-title">MARKET STRUCTURE DASHBOARD TABLE</div>
+        <table>
+            <thead>
+            <tr>
+                <th>TF</th>
+                <th>SWING H/L</th>
+                <th>STRUCTURE</th>
+                <th>OB</th>
+                <th>FVG</th>
+                <th>EMA</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>1M</td>
+                <td id="tf-1m-swing" class="data-cell">--</td>
+                <td id="tf-1m-struct" class="data-cell">--</td>
+                <td id="tf-1m-ob" class="data-cell">--</td>
+                <td id="tf-1m-fvg" class="data-cell">--</td>
+                <td id="tf-1m-ema" class="data-cell">--</td>
+            </tr>
+            <tr>
+                <td>5M</td>
+                <td id="tf-5m-swing" class="data-cell">--</td>
+                <td id="tf-5m-struct" class="data-cell">--</td>
+                <td id="tf-5m-ob" class="data-cell">--</td>
+                <td id="tf-5m-fvg" class="data-cell">--</td>
+                <td id="tf-5m-ema" class="data-cell">--</td>
+            </tr>
+            <tr>
+                <td>15M</td>
+                <td id="tf-15m-swing" class="data-cell">--</td>
+                <td id="tf-15m-struct" class="data-cell">--</td>
+                <td id="tf-15m-ob" class="data-cell">--</td>
+                <td id="tf-15m-fvg" class="data-cell">--</td>
+                <td id="tf-15m-ema" class="data-cell">--</td>
+            </tr>
+            <tr>
+                <td>1H</td>
+                <td id="tf-1h-swing" class="data-cell">--</td>
+                <td id="tf-1h-struct" class="data-cell">--</td>
+                <td id="tf-1h-ob" class="data-cell">--</td>
+                <td id="tf-1h-fvg" class="data-cell">--</td>
+                <td id="tf-1h-ema" class="data-cell">--</td>
+            </tr>
+            <tr>
+                <td>4H</td>
+                <td id="tf-4h-swing" class="data-cell">--</td>
+                <td id="tf-4h-struct" class="data-cell">--</td>
+                <td id="tf-4h-ob" class="data-cell">--</td>
+                <td id="tf-4h-fvg" class="data-cell">--</td>
+                <td id="tf-4h-ema" class="data-cell">--</td>
+            </tr>
+            <tr>
+                <td>D</td>
+                <td id="tf-1d-swing" class="data-cell">--</td>
+                <td id="tf-1d-struct" class="data-cell">--</td>
+                <td id="tf-1d-ob" class="data-cell">--</td>
+                <td id="tf-1d-fvg" class="data-cell">--</td>
+                <td id="tf-1d-ema" class="data-cell">--</td>
+            </tr>
+            <tr>
+                <td>W</td>
+                <td id="tf-1w-swing" class="data-cell">--</td>
+                <td id="tf-1w-struct" class="data-cell">--</td>
+                <td id="tf-1w-ob" class="data-cell">--</td>
+                <td id="tf-1w-fvg" class="data-cell">--</td>
+                <td id="tf-1w-ema" class="data-cell">--</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="panel-grid">
+        <div class="card">
+            <div class="section-title">CURRENT TIMEFRAME (15M)</div>
+            <div class="mini-grid">
+                <div class="mini-item">
+                    <div class="mini-label">VOLUME</div>
+                    <div id="curr-vol" class="data-cell">--</div>
+                </div>
+                <div class="mini-item">
+                    <div class="mini-label">SWING</div>
+                    <div id="curr-swing" class="data-cell">--</div>
+                </div>
+                <div class="mini-item">
+                    <div class="mini-label">VOLATILITY</div>
+                    <div id="curr-vola" class="data-cell">--</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="section-title">MARKET CONTEXT</div>
+            <div class="mini-grid">
+                <div class="mini-item">
+                    <div class="mini-label">SESSION</div>
+                    <div id="curr-session" class="data-cell">--</div>
+                </div>
+                <div class="mini-item">
+                    <div class="mini-label">KILLZONE</div>
+                    <div id="curr-kz" class="data-cell">--</div>
+                </div>
+                <div class="mini-item">
+                    <div class="mini-label">BIAS</div>
+                    <div id="curr-bias" class="data-cell">--</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="section-title">HTF LEVELS</div>
+        <div class="htf-grid">
+            <div class="htf-row"><span class="htf-key">PDH</span><span id="htf-pdh" class="data-cell">--</span></div>
+            <div class="htf-row"><span class="htf-key">PDL</span><span id="htf-pdl" class="data-cell">--</span></div>
+            <div class="htf-row"><span class="htf-key">PWH</span><span id="htf-pwh" class="data-cell">--</span></div>
+            <div class="htf-row"><span class="htf-key">PWL</span><span id="htf-pwl" class="data-cell">--</span></div>
+            <div class="htf-row"><span class="htf-key">PMH</span><span id="htf-pmh" class="data-cell">--</span></div>
+            <div class="htf-row"><span class="htf-key">PML</span><span id="htf-pml" class="data-cell">--</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+const REFRESH_INTERVAL = 15; // seconds
+let activeSymbol = 'BTCUSDT';
+let countdown = REFRESH_INTERVAL;
+let timer = null;
+let activeController = null;
+
+const CELL_IDS = [
+    'tf-1m-swing','tf-1m-struct','tf-1m-ob','tf-1m-fvg','tf-1m-ema',
+    'tf-5m-swing','tf-5m-struct','tf-5m-ob','tf-5m-fvg','tf-5m-ema',
+    'tf-15m-swing','tf-15m-struct','tf-15m-ob','tf-15m-fvg','tf-15m-ema',
+    'tf-1h-swing','tf-1h-struct','tf-1h-ob','tf-1h-fvg','tf-1h-ema',
+    'tf-4h-swing','tf-4h-struct','tf-4h-ob','tf-4h-fvg','tf-4h-ema',
+    'tf-1d-swing','tf-1d-struct','tf-1d-ob','tf-1d-fvg','tf-1d-ema',
+    'tf-1w-swing','tf-1w-struct','tf-1w-ob','tf-1w-fvg','tf-1w-ema',
+    'curr-vol','curr-swing','curr-vola','curr-session','curr-kz','curr-bias',
+    'htf-pdh','htf-pdl','htf-pwh','htf-pwl','htf-pmh','htf-pml'
+];
+
+function setLoadingState() {
+    CELL_IDS.forEach((id) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = '...';
+        if (el.classList.contains('data-cell')) {
+            el.className = 'data-cell neutral';
+        }
+    });
+}
+
+function setErrorState() {
+    CELL_IDS.forEach((id) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = '--';
+        if (el.classList.contains('data-cell')) {
+            el.className = 'data-cell neutral';
+            el.style.color = '';
+        }
+    });
+}
+
+async function fetchData(symbol) {
+    if (activeController) {
+        activeController.abort();
+    }
+    activeController = new AbortController();
+    try {
+        const resp = await fetch(`/api/msd/${symbol}`, { signal: activeController.signal });
+        const data = await resp.json();
+        if (data.error) throw new Error(data.error);
+        renderDashboard(data);
+    } catch (e) {
+        if (e.name === 'AbortError') return;
+        console.error('Fetch error:', e);
+        setErrorState();
+    }
+}
+
+function startTimer() {
+    clearInterval(timer);
+    countdown = REFRESH_INTERVAL;
+    document.getElementById('countdown').textContent = `Refreshing in ${countdown}s`;
+    timer = setInterval(() => {
+        countdown--;
+        document.getElementById('countdown').textContent = `Refreshing in ${countdown}s`;
+        if (countdown <= 0) {
+            fetchData(activeSymbol);
+            countdown = REFRESH_INTERVAL;
+        }
+    }, 1000);
+}
+
+function switchSymbol(symbol) {
+    activeSymbol = symbol;
+    document.querySelectorAll('.tab').forEach((t) => {
+        t.classList.toggle('active', t.dataset.symbol === symbol);
+    });
+    setLoadingState();
+    fetchData(symbol);
+    startTimer();
+}
+
+function renderDashboard(data) {
+    document.getElementById('curr-price').textContent =
+        '$' + data.price.toLocaleString('en-US', {minimumFractionDigits: 2});
+
+    const tf15 = data.tf_rows.find((r) => r.tf === '15m');
+    if (tf15) {
+        const priceEl = document.getElementById('curr-price');
+        priceEl.style.color = tf15.ema.dir > 0 ? '#089981' : '#f23645';
+    }
+
+    data.tf_rows.forEach((row) => {
+        const prefix = `tf-${row.tf.replace('m', 'm').replace('h', 'h')}`;
+        if (row.error) {
+            setText(`${prefix}-swing`, '--', 'neutral');
+            setText(`${prefix}-struct`, '--', 'neutral');
+            setText(`${prefix}-ob`, '--', 'neutral');
+            setText(`${prefix}-fvg`, '--', 'neutral');
+            setText(`${prefix}-ema`, '--', 'neutral');
+            return;
+        }
+        setText(`${prefix}-swing`, row.swing_bar, row.swing_color);
+
+        const structText = row.struct_labels.join('-') +
+            (row.struct_bias > 0 ? ' ↑' : row.struct_bias < 0 ? ' ↓' : ' →');
+        setText(
+            `${prefix}-struct`,
+            structText,
+            row.struct_bias > 0 ? 'bull' : row.struct_bias < 0 ? 'bear' : 'neutral'
+        );
+
+        setText(`${prefix}-ob`, fmtZone(row.ob, 'OB'), dirColor(row.ob_dir));
+        setText(`${prefix}-fvg`, fmtZone(row.fvg, 'FVG'), dirColor(row.fvg_dir));
+
+        const emaPct = Math.abs(row.ema.dist_pct).toFixed(2) + '%' + (row.ema.dir > 0 ? ' ↑' : ' ↓');
+        setText(`${prefix}-ema`, emaPct, dirColor(row.ema.dir));
+    });
+
+    setText(
+        'curr-vol',
+        data.volume.bar_str + ' ' + data.volume.state,
+        data.volume.state === 'EXTREME' || data.volume.state === 'HIGH' ? 'yellow' : 'neutral'
+    );
+    setText('curr-swing', data.curr_swing_bar, data.curr_swing_color);
+    setText(
+        'curr-vola',
+        data.volatility.state,
+        data.volatility.state === 'HIGH' ? 'bear' : data.volatility.state === 'LOW' ? 'bull' : 'neutral'
+    );
+
+    setTextColor('curr-session', data.session.name, data.session.color);
+    setTextColor('curr-kz', data.killzone.name, data.killzone.color);
+    setText('curr-bias', data.bias.label + ' ' + data.bias.score, null);
+    document.getElementById('curr-bias').style.color = data.bias.color;
+
+    renderHTF('pdh', data.htf.pdh, data.htf.pdh_pct, data.price);
+    renderHTF('pdl', data.htf.pdl, data.htf.pdl_pct, data.price);
+    renderHTF('pwh', data.htf.pwh, data.htf.pwh_pct, data.price);
+    renderHTF('pwl', data.htf.pwl, data.htf.pwl_pct, data.price);
+    renderHTF('pmh', data.htf.pmh, data.htf.pmh_pct, data.price);
+    renderHTF('pml', data.htf.pml, data.htf.pml_pct, data.price);
+}
+
+function setText(id, text, colorClass) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = text;
+    el.style.color = '';
+    if (colorClass) {
+        el.className = 'data-cell ' + colorClass;
+    } else {
+        el.className = 'data-cell';
+    }
+}
+
+function setTextColor(id, text, hexColor) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = text;
+    el.className = 'data-cell';
+    el.style.color = hexColor;
+}
+
+function dirColor(dir) {
+    return dir > 0 ? 'bull' : dir < 0 ? 'bear' : 'neutral';
+}
+
+function fmtZone(zone, type) {
+    if (!zone || zone.nearest_dir === 0) return 'NONE';
+    const dir = zone.nearest_dir > 0 ? 'BULL' : 'BEAR';
+    const pct = Math.abs(zone.nearest_dist_pct).toFixed(1) + '%';
+    const arrow = zone.nearest_dir > 0 ? '↑' : '↓';
+    const inside = (zone.nearest_dir > 0 && zone.nearest_dist_pct <= 0) ||
+                   (zone.nearest_dir < 0 && zone.nearest_dist_pct >= 0);
+    return inside ? `IN ${dir} ${type} ${arrow}` : `${dir} ${type} (${pct}) ${arrow}`;
+}
+
+function renderHTF(key, price, pct, currPrice) {
+    const el = document.getElementById(`htf-${key}`);
+    if (!el || price == null) {
+        if (el) {
+            el.textContent = '--';
+            el.className = 'data-cell neutral';
+            el.style.color = '';
+        }
+        return;
+    }
+    const sign = pct >= 0 ? '+' : '';
+    el.textContent = `$${price.toLocaleString('en-US', {maximumFractionDigits: 2})} (${sign}${pct}%)`;
+    el.className = 'data-cell';
+    el.style.color = pct >= 0 ? '#089981' : '#f23645';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    fetchData(activeSymbol);
+    startTimer();
+});
+</script>
+</body>
+</html>

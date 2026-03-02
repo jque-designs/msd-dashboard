@@ -1,0 +1,14 @@
+[Unit]
+Description=MSD Web Dashboard
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/clawd-biz/trading/bot/dashboard/msd
+ExecStart=/home/ubuntu/clawd-biz/trading/.venv/bin/python app_msd.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
